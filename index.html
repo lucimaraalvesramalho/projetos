@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <!-- Define a codificação, a adaptação para telas móveis e a cor do navegador. -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f7fb">
+  <!-- Identifica a página e carrega os estilos e o comportamento da aplicação. -->
+  <title>Meu Kanban</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <!-- Cabeçalho com a marca, busca, filtro de prioridade e alternância de tema. -->
+  <header class="app-header">
+    <!-- A marca também funciona como link para o início da página. -->
+    <a class="brand" href="#" aria-label="Meu Kanban, início">
+      <span class="brand-icon" aria-hidden="true">▦</span>
+      <span>meu<span class="brand-accent">kanban</span></span>
+    </a>
+    <div class="header-actions">
+      <!-- Os rótulos invisíveis dão nomes acessíveis aos controles. -->
+      <label class="sr-only" for="busca">Buscar tarefas</label>
+      <span class="search-wrap">
+        <span aria-hidden="true">⌕</span>
+        <input id="busca" type="search" placeholder="Buscar tarefas..." autocomplete="off">
+      </span>
+      <!-- Filtra os cartões pelo nível de prioridade selecionado. -->
+      <label class="sr-only" for="filtro-prioridade">Filtrar por prioridade</label>
+      <select id="filtro-prioridade" class="filter-select">
+        <option value="">Todas as prioridades</option>
+        <option value="baixa">Baixa</option>
+        <option value="media">Média</option>
+        <option value="alta">Alta</option>
+      </select>
+      <!-- O JavaScript atualiza o ícone e o rótulo conforme o tema ativo. -->
+      <button id="btn-tema" class="icon-button" type="button" aria-label="Ativar tema escuro" title="Alternar tema">
+        <span aria-hidden="true">☾</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Área principal: apresentação, ações globais, avisos e quadro renderizado. -->
+  <main class="main-content">
+    <section class="intro" aria-labelledby="titulo-pagina">
+      <div>
+        <p class="eyebrow">ORGANIZE SEU DIA</p>
+        <h1 id="titulo-pagina">Meu quadro Kanban</h1>
+        <p class="subtitle">Organize suas atividades um passo de cada vez. Seu progresso sempre a vista!</p>
+      </div>
+      <!-- Ações para criar colunas e remover todas as tarefas do quadro. -->
+      <div class="board-actions">
+        <button id="btn-adicionar-coluna" class="button button-secondary" type="button">
+          <span aria-hidden="true">＋</span> Nova coluna
+        </button>
+        <button id="btn-limpar" class="button button-danger" type="button">
+          <span aria-hidden="true">⌫</span> Limpar quadro
+        </button>
+      </div>
+    </section>
+
+    <!-- Região acessível usada para mensagens temporárias de erro e orientação. -->
+    <p id="aviso" class="notice" role="status" aria-live="polite" hidden></p>
+    <!-- O JavaScript preenche este contêiner com as colunas e os cartões. -->
+    <section id="quadro" class="board" aria-label="Quadro Kanban"></section>
+  </main>
+
+  <!-- Diálogo de criação e edição de tarefas, aberto pelo código JavaScript. -->
+  <dialog id="modal-tarefa" class="task-dialog" aria-labelledby="modal-titulo">
+    <form id="form-tarefa" novalidate>
+      <!-- Título e controle para fechar o formulário. -->
+      <div class="dialog-heading">
+        <div>
+          <p class="eyebrow">SEU QUADRO, SUAS REGRAS</p>
+          <h2 id="modal-titulo">Nova tarefa</h2>
+        </div>
+        <button id="btn-fechar-modal" class="icon-button close-button" type="button" aria-label="Fechar janela">×</button>
+      </div>
+
+      <!-- Campos principais; o título é obrigatório e a validação é exibida no formulário. -->
+      <label for="campo-titulo">Título <span aria-hidden="true">*</span></label>
+      <input id="campo-titulo" name="titulo" type="text" maxlength="120" required placeholder="Ex.: Preparar apresentação">
+      <p id="erro-titulo" class="field-error" role="alert" hidden>Informe um título para a tarefa.</p>
+
+      <!-- Descrição opcional com limite de caracteres. -->
+      <label for="campo-descricao">Descrição <span class="optional">(opcional)</span></label>
+      <textarea id="campo-descricao" name="descricao" rows="4" maxlength="1000" placeholder="Adicione mais detalhes..."></textarea>
+
+      <!-- Prioridade inicial e data de entrega opcional da tarefa. -->
+      <div class="form-row">
+        <div>
+          <label for="campo-prioridade">Prioridade</label>
+          <select id="campo-prioridade" name="prioridade">
+            <option value="baixa">Baixa</option>
+            <option value="media" selected>Média</option>
+            <option value="alta">Alta</option>
+          </select>
+        </div>
+        <div>
+          <label for="campo-entrega">Data de entrega <span class="optional">(opcional)</span></label>
+          <input id="campo-entrega" name="entrega" type="date">
+        </div>
+      </div>
+
+      <!-- Permite descartar o formulário ou salvar a tarefa. -->
+      <div class="dialog-actions">
+        <button id="btn-cancelar" class="button button-secondary" type="button">Cancelar</button>
+        <button class="button button-primary" type="submit">Salvar tarefa</button>
+      </div>
+    </form>
+  </dialog>
+</body>
+</html>
