@@ -1,6 +1,6 @@
 // ===== Configuração e estado =====
-// Chaves usadas para persistir separadamente os dados do quadro e a preferência de tema.
-const CHAVE_DADOS = "meu-kanban-dados-v1";
+// O quadro criptografado e a preferência de tema ficam somente neste navegador.
+const CHAVE_DADOS_ANTIGA = "meu-kanban-dados-v1";
 const CHAVE_TEMA = "meu-kanban-tema-v1";
 // Paleta reaproveitada em sequência quando novas colunas são criadas.
 const CORES_COLUNAS = ["#7b6ce0", "#e7a23b", "#35a77a", "#e36c83", "#4d9ac8"];
@@ -10,6 +10,10 @@ const PRIORIDADES = {
   media: { rotulo: "Média", cor: "priority-media" },
   alta: { rotulo: "Alta", cor: "priority-alta" },
 };
+const seguranca = window.KanbanSecurity;
+let chaveQuadro = null;
+let contaAtual = null;
+let filaSalvamento = Promise.resolve();
 
 // Gera identificadores únicos para tarefas e colunas.
 function novoId() {
@@ -28,9 +32,9 @@ function estadoInicial() {
   };
 }
 
-// Mantém os dados persistentes e temporários que controlam a interface.
+// Mantém o quadro em memória até a sessão local ser validada.
 const state = {
-  ...carregarEstado(),
+  ...estadoInicial(),
   filtroTexto: "",
   filtroPrioridade: "",
   tarefaEditandoId: null,
@@ -52,56 +56,23 @@ const erroTitulo = document.getElementById("erro-titulo");
 const aviso = document.getElementById("aviso");
 const botaoTema = document.getElementById("btn-tema");
 
-// ===== Persistência =====
-// Lê e valida os dados do navegador antes de usá-los; em caso de falha, inicia um quadro padrão.
-function carregarEstado() {
-  try {
-    const salvo = localStorage.getItem(CHAVE_DADOS);
-    if (!salvo) return estadoInicial();
-    const dados = JSON.parse(salvo);
-    if (!Array.isArray(dados.colunas) || !Array.isArray(dados.tarefas)) {
-      throw new Error("Formato de dados inválido.");
-    }
-
-    const idsColunas = new Set(dados.colunas.map(coluna => coluna.id));
-    const colunasValidas = dados.colunas.every(coluna =>
-      typeof coluna.id === "string" &&
-      typeof coluna.titulo === "string" &&
-      typeof coluna.cor === "string"
-    );
-    const tarefasValidas = dados.tarefas.every(tarefa =>
-      typeof tarefa.id === "string" &&
-      typeof tarefa.titulo === "string" &&
-      typeof tarefa.descricao === "string" &&
-      Object.hasOwn(PRIORIDADES, tarefa.prioridade) &&
-      idsColunas.has(tarefa.coluna) &&
-      (typeof tarefa.entrega === "string" || tarefa.entrega === "")
-    );
-    if (!colunasValidas || !tarefasValidas) throw new Error("Dados salvos inválidos.");
-
-    return {
-      colunas: dados.colunas,
-      tarefas: dados.tarefas,
-    };
-  } catch (erro) {
-    console.error("Não foi possível carregar o quadro salvo:", erro);
-    return estadoInicial();
-  }
-}
-
-// Salva apenas colunas e tarefas, sem filtros ou outros dados transitórios da interface.
+// Salva o quadro criptografado na conta ativa, sem gravar tarefas em texto puro.
 function salvarEstado() {
-  try {
-    localStorage.setItem(CHAVE_DADOS, JSON.stringify({
+  if (!contaAtual || !chaveQuadro) return filaSalvamento;
+  const quadroAtual = {
       colunas: state.colunas,
       tarefas: state.tarefas,
-    }));
-    return true;
-  } catch (erro) {
-    console.error("Não foi possível salvar o quadro:", erro);
-    mostrarAviso("Não foi possível salvar os dados. Verifique o espaço disponível no navegador.");
-    return false;
-  }
+  };
+  filaSalvamento = filaSalvamento.catch(() => {}).then(async () => {
+    const conta = seguranca.lerConta(contaAtual.id);
+    if (!conta) throw new Error("A conta local não foi encontrada.");
+    const cifrado = await seguranca.criptografarQuadro(quadroAtual, chaveQuadro);
+    seguranca.gravarConta({ ...conta, ...cifrado });
+  }).catch(erro => {
+    console.error("Não foi possível salvar o quadro criptografado:", erro);
+    mostrarAviso("Não foi possível salvar o quadro. Verifique o espaço disponível no navegador.");
+  });
+  return filaSalvamento;
 }
 
 // Recupera a preferência de tema e usa o tema claro como padrão.
@@ -352,6 +323,10 @@ function adicionarColuna() {
     mostrarAviso("O nome da coluna não pode ficar vazio.");
     return;
   }
+  if (nome.length > 120) {
+    mostrarAviso("O nome da coluna deve ter no máximo 120 caracteres.");
+    return;
+  }
   state.colunas.push({
     id: novoId(),
     titulo: nome,
@@ -370,6 +345,10 @@ function renomearColuna(id) {
   const nome = titulo.trim();
   if (!nome) {
     mostrarAviso("O nome da coluna não pode ficar vazio.");
+    return;
+  }
+  if (nome.length > 120) {
+    mostrarAviso("O nome da coluna deve ter no máximo 120 caracteres.");
     return;
   }
   coluna.titulo = nome;
@@ -480,6 +459,32 @@ function alternarTema() {
   salvarTema(tema);
 }
 
+async function inicializarConta() {
+  try {
+    const sessao = seguranca.lerSessao();
+    const conta = sessao && seguranca.lerConta(sessao.id);
+    if (!sessao || !conta) {
+      throw new Error("Não há uma conta conectada nesta aba.");
+    }
+
+    const chave = await seguranca.importarChaveDaSessao(sessao.chaveDaSessao);
+    const dados = await seguranca.descriptografarQuadro(conta, chave);
+    if (!seguranca.validarQuadro(dados)) throw new Error("O quadro salvo está inválido.");
+
+    contaAtual = conta;
+    chaveQuadro = chave;
+    state.colunas = dados.colunas;
+    state.tarefas = dados.tarefas;
+    document.getElementById("email-usuario").textContent = conta.email;
+    document.body.hidden = false;
+    renderizar();
+  } catch (erro) {
+    console.warn("A sessão local não pôde ser validada.");
+    seguranca.limparSessao();
+    window.location.replace("./login.html");
+  }
+}
+
 // Exibe um aviso temporário, substituindo qualquer temporizador anterior.
 function mostrarAviso(mensagem) {
   aviso.textContent = mensagem;
@@ -504,6 +509,21 @@ document.getElementById("filtro-prioridade").addEventListener("change", evento =
 document.getElementById("btn-adicionar-coluna").addEventListener("click", adicionarColuna);
 document.getElementById("btn-limpar").addEventListener("click", limparQuadro);
 document.getElementById("btn-tema").addEventListener("click", alternarTema);
+document.getElementById("btn-sair").addEventListener("click", async evento => {
+  const botao = evento.currentTarget;
+  botao.disabled = true;
+  try {
+    await filaSalvamento;
+    seguranca.limparSessao();
+    chaveQuadro = null;
+    contaAtual = null;
+    window.location.assign("./login.html");
+  } catch (erro) {
+    console.error("Não foi possível encerrar a sessão local:", erro);
+    mostrarAviso("Não foi possível sair agora. Tente novamente.");
+    botao.disabled = false;
+  }
+});
 document.getElementById("btn-fechar-modal").addEventListener("click", fecharModal);
 document.getElementById("btn-cancelar").addEventListener("click", fecharModal);
 formulario.addEventListener("submit", salvarTarefa);
@@ -519,6 +539,6 @@ modal.addEventListener("cancel", evento => {
 });
 
 // ===== Inicialização =====
-// Aplica a preferência salva e desenha o quadro assim que o script é carregado.
+// Aplica o tema salvo e abre o quadro somente após validar a conta local.
 aplicarTema(carregarTema());
-renderizar();
+inicializarConta();

@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f7fb">
+  <title>Criar conta · meuKanban</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="security.js" defer></script>
+  <script src="auth.js" defer></script>
+</head>
+<body class="auth-page">
+  <main class="auth-card" aria-labelledby="titulo-auth">
+    <a class="brand auth-brand" href="./" aria-label="meuKanban, início">
+      <span class="brand-icon" aria-hidden="true">▦</span>
+      <span>meu<span class="brand-accent">kanban</span></span>
+    </a>
+    <p class="eyebrow">COMECE A SE ORGANIZAR</p>
+    <h1 id="titulo-auth">Crie sua conta</h1>
+    <p class="auth-subtitle">Crie uma senha para criptografar seu quadro neste navegador.</p>
+    <form id="form-auth" data-tipo="register" novalidate>
+      <label for="email">E-mail</label>
+      <input id="email" name="email" type="email" autocomplete="email" required maxlength="254"
+        placeholder="voce@exemplo.com">
+      <label for="senha">Senha</label>
+      <div class="password-field">
+        <input id="senha" name="senha" type="password" autocomplete="new-password" required minlength="8"
+          aria-describedby="dica-senha auth-mensagem" placeholder="Mínimo de 8 caracteres">
+        <button class="password-toggle" type="button" data-toggle-password="senha"
+          aria-label="Mostrar senha" aria-pressed="false">Mostrar</button>
+      </div>
+      <small id="dica-senha" class="password-hint">Use pelo menos 8 caracteres. A senha não pode ser recuperada.</small>
+      <label for="confirmar-senha">Confirmar senha</label>
+      <div class="password-field">
+        <input id="confirmar-senha" name="confirmarSenha" type="password" autocomplete="new-password" required
+          placeholder="Digite a senha novamente">
+        <button class="password-toggle" type="button" data-toggle-password="confirmar-senha"
+          aria-label="Mostrar confirmação da senha" aria-pressed="false">Mostrar</button>
+      </div>
+      <p class="auth-error" id="auth-mensagem" role="alert" aria-live="polite" hidden></p>
+      <button class="button button-primary auth-submit" type="submit">Criar conta</button>
+    </form>
+    <p class="auth-footer">Já tem uma conta? <a href="login.html">Entrar</a></p>
+    <button id="btn-tema-auth" class="theme-toggle" type="button" aria-label="Alternar tema">Alternar tema</button>
+    <p class="auth-disclaimer">Conta local, sem sincronização. Guarde sua senha: ela é a única forma de abrir o quadro criptografado.</p>
+  </main>
+</body>
+</html>

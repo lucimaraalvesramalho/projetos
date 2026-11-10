@@ -8,13 +8,14 @@
   <!-- Identifica a página e carrega os estilos e o comportamento da aplicação. -->
   <title>Meu Kanban</title>
   <link rel="stylesheet" href="style.css">
+  <script src="security.js" defer></script>
   <script src="script.js" defer></script>
 </head>
-<body>
+<body hidden>
   <!-- Cabeçalho com a marca, busca, filtro de prioridade e alternância de tema. -->
   <header class="app-header">
     <!-- A marca também funciona como link para o início da página. -->
-    <a class="brand" href="#" aria-label="Meu Kanban, início">
+    <a class="brand" href="./" aria-label="Meu Kanban, início">
       <span class="brand-icon" aria-hidden="true">▦</span>
       <span>meu<span class="brand-accent">kanban</span></span>
     </a>
@@ -37,6 +38,8 @@
       <button id="btn-tema" class="icon-button" type="button" aria-label="Ativar tema escuro" title="Alternar tema">
         <span aria-hidden="true">☾</span>
       </button>
+      <span id="email-usuario" class="user-email" aria-label="Conta conectada"></span>
+      <button id="btn-sair" class="button button-secondary logout-button" type="button">Sair</button>
     </div>
   </header>
 
@@ -59,6 +62,10 @@
       </div>
     </section>
 
+    <p class="local-storage-notice">
+      Quadro criptografado e salvo somente neste navegador. O login local não substitui autenticação de servidor.
+      Não há sincronização entre dispositivos.
+    </p>
     <!-- Região acessível usada para mensagens temporárias de erro e orientação. -->
     <p id="aviso" class="notice" role="status" aria-live="polite" hidden></p>
     <!-- O JavaScript preenche este contêiner com as colunas e os cartões. -->

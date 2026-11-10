@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f7fb">
+  <title>Entrar · meuKanban</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="security.js" defer></script>
+  <script src="auth.js" defer></script>
+</head>
+<body class="auth-page">
+  <main class="auth-card" aria-labelledby="titulo-auth">
+    <a class="brand auth-brand" href="./" aria-label="meuKanban, início">
+      <span class="brand-icon" aria-hidden="true">▦</span>
+      <span>meu<span class="brand-accent">kanban</span></span>
+    </a>
+    <p class="eyebrow">BEM-VINDO DE VOLTA</p>
+    <h1 id="titulo-auth">Acesse seu quadro</h1>
+    <p class="auth-subtitle">Entre para continuar organizando suas tarefas.</p>
+    <form id="form-auth" data-tipo="login" novalidate>
+      <label for="email">E-mail</label>
+      <input id="email" name="email" type="email" autocomplete="email" required maxlength="254"
+        placeholder="voce@exemplo.com">
+      <label for="senha">Senha</label>
+      <div class="password-field">
+        <input id="senha" name="senha" type="password" autocomplete="current-password" required
+          aria-describedby="auth-mensagem" placeholder="Sua senha">
+        <button class="password-toggle" type="button" data-toggle-password="senha"
+          aria-label="Mostrar senha" aria-pressed="false">Mostrar</button>
+      </div>
+      <p class="auth-error" id="auth-mensagem" role="alert" aria-live="polite" hidden></p>
+      <button class="button button-primary auth-submit" type="submit">Entrar</button>
+    </form>
+    <p class="auth-footer">Ainda não tem uma conta? <a href="register.html">Criar conta</a></p>
+    <button id="btn-tema-auth" class="theme-toggle" type="button" aria-label="Alternar tema">Alternar tema</button>
+    <p class="auth-disclaimer">Conta e quadro existem apenas neste navegador. Não há recuperação de senha nem sincronização.</p>
+  </main>
+</body>
+</html>
